@@ -16,6 +16,7 @@ import 'state/authState.dart';
 import 'state/chatState.dart';
 import 'state/feedState.dart';
 import 'state/notificationState.dart';
+import 'ui/page/common/splash.dart';
 import 'ui/page/message/chatScreenPage.dart';
 
 void main() async {
@@ -46,7 +47,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         routes: {
           // When navigating to the "/" route, build the FirstScreen widget.
-          '/': (context) => HomePage(),
+          '/': (context) => SplashPage(),
           Constants.PAGE_SIGNUP: (context) => Signup(),
           // When navigating to the "/second" route, build the SecondScreen widget.
           Constants.PAGE_HOME: (context) => HomePage(),
