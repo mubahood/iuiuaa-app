@@ -9,6 +9,7 @@ class Constants {
   static final String EditProfile = "/EditProfile";
   static final String NewMessagePage = "/NewMessagePage";
   static final String ChatScreenPage = "/ChatScreenPage";
+  static final String ComposeTweetPage = "/composeTweet";
   static final Duration timeLimit = Duration(seconds: 30);
 
   static final List<String> awards = [

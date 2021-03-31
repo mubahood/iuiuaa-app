@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:iuiuaa/db/database.dart';
 import 'package:iuiuaa/model/UserModel.dart';
+import 'package:iuiuaa/model/chatModel.dart';
 import 'package:iuiuaa/ui/theme/theme.dart';
 import 'package:iuiuaa/widgets/customWidgets.dart';
 import 'package:iuiuaa/widgets/newWidget/customLoader.dart';
@@ -112,31 +113,78 @@ class Utility {
     return 'Joined $dat';
   }
 
-  static String getChatTime(String date) {
-    if (date == null || date.isEmpty) {
+  static String getChatTime(String _date) {
+
+    if (_date == null || _date.isEmpty) {
       return '';
     }
-    String msg = '';
-    var dt = DateTime.parse(date).toLocal();
 
-    if (DateTime.now().toLocal().isBefore(dt)) {
-      return DateFormat.jm().format(DateTime.parse(date).toLocal()).toString();
-    }
+
+
+    int timestamp = int.parse(_date);
+    var dt = new DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+
+
+    String msg = '';
+
+
+/*    if (DateTime.now().toLocal().isBefore(dt)) {
+      return "nOW";
+    }*/
 
     var dur = DateTime.now().toLocal().difference(dt);
     if (dur.inDays > 0) {
-      msg = '${dur.inDays} d';
+      msg = '${dur.inDays}d ago';
       return dur.inDays == 1 ? '1d' : DateFormat("dd MMM").format(dt);
     } else if (dur.inHours > 0) {
-      msg = '${dur.inHours} h';
+      msg = '${dur.inHours}h ago';
     } else if (dur.inMinutes > 0) {
-      msg = '${dur.inMinutes} m';
+      msg = '${dur.inMinutes}m ago';
     } else if (dur.inSeconds > 0) {
-      msg = '${dur.inSeconds} s';
+      msg = '${dur.inSeconds}s ago';
     } else {
       msg = 'now';
     }
     return msg;
+  }
+
+  static Future<List<ChatMessage>> get_web_chats(Map params) async {
+    List<ChatMessage> messages = [];
+    final _authority = Constants.BASE_URL;
+    final _path = Constants.BASE_PATH + "chats_user";
+    final _uri = Uri.https(_authority, _path, params);
+    try {
+      final response = await http.get(_uri).timeout(Constants.timeLimit);
+      if (response.statusCode != 200) {
+        print("ROMINA: FAILED RESP ==> " +
+            _uri.path +
+            " == " +
+            response.statusCode.toString());
+        return [];
+      }
+      Iterable l = json.decode(response.body);
+      messages =
+          List<ChatMessage>.from(l.map((model) => ChatMessage.fromJson(model)));
+      if (messages == null) {
+        return [];
+      } else {
+        DatabaseHelper dbHelper = DatabaseHelper.instance;
+        if (dbHelper != null) {
+          messages.forEach((element) {
+            if (element != null && element.key !=null) {
+              try {
+                dbHelper.save_message(element);
+              } catch (e) {}
+            }
+          });
+        }
+      }
+
+      return messages;
+    } catch (E) {
+      print("ROMINA: failed Because " + E);
+      return [];
+    }
   }
 
   static Future<List<UserModel>> get_web_user(Map params) async {
@@ -315,5 +363,24 @@ class Utility {
     var data = ClipboardData(text: text);
     Clipboard.setData(data);
     customSnackBar(scaffoldKey, message);
+  }
+
+  static List<UserModel> user_search(String _keyword, List<UserModel> _users) {
+    if (_keyword == null || _keyword.isEmpty) {
+      return _users;
+    }
+    List<UserModel> _users_temp = [];
+    _users_temp.clear();
+    _users.forEach((element) {
+      if (element.first_name.toLowerCase().contains(_keyword) ||
+          element.last_name.toLowerCase().contains(_keyword) ||
+          element.email.toLowerCase().contains(_keyword) ||
+          element.campus.toLowerCase().contains(_keyword) ||
+          element.phone_number.toLowerCase().contains(_keyword)) {
+        _users_temp.add(element);
+      }
+    });
+
+    return _users_temp;
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:iuiuaa/helper/enum.dart';
+import 'package:iuiuaa/helper/constant.dart';
 import 'package:iuiuaa/model/feedModel.dart';
 import 'package:iuiuaa/state/authState.dart';
 import 'package:iuiuaa/state/feedState.dart';
@@ -7,7 +7,6 @@ import 'package:iuiuaa/ui/theme/theme.dart';
 import 'package:iuiuaa/widgets/customWidgets.dart';
 import 'package:iuiuaa/widgets/newWidget/customLoader.dart';
 import 'package:iuiuaa/widgets/newWidget/emptyList.dart';
-import 'package:iuiuaa/widgets/tweet.dart';
 import 'package:provider/provider.dart';
 
 class FeedPage extends StatelessWidget {
@@ -21,7 +20,7 @@ class FeedPage extends StatelessWidget {
   Widget _floatingActionButton(BuildContext context) {
     return FloatingActionButton(
       onPressed: () {
-        Navigator.of(context).pushNamed('/CreateFeedPage/tweet');
+        Navigator.pushNamed(context, Constants.ComposeTweetPage);
       },
       child: customIcon(
         context,
@@ -79,7 +78,7 @@ class _FeedPageBody extends StatelessWidget {
           /// Open up sidebaar drawer on user avatar tap
           scaffoldKey.currentState.openDrawer();
         },
-        child:Text("Image6666"),
+        child: Text("Image6666"),
       ),
     );
   }
@@ -118,7 +117,7 @@ class _FeedPageBody extends StatelessWidget {
                             (model) {
                               return Container(
                                 color: Colors.white,
-                                child:  Text("Bottom"),
+                                child: Text("Bottom"),
                               );
                             },
                           ).toList(),

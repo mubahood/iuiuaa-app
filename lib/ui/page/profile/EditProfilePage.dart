@@ -380,9 +380,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> uploadFile(String url, File file) async {
+
     final _path = "/wp/wp-json/muhindo/v1/user_update";
     final _uri = Uri.https(Constants.BASE_URL, _path);
-
     http.MultipartRequest request = new http.MultipartRequest("POST", _uri);
 
     http.MultipartFile multipartFile =

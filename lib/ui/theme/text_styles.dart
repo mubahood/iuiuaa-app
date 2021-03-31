@@ -21,12 +21,18 @@ class TextStyles {
     );
   }
 
+
+
   static TextStyle get subtitleStyle {
     return TextStyle(
         color: AppColor.darkGrey, fontSize: 14, fontWeight: FontWeight.bold);
   }
 
   static TextStyle get usernameStyle {
+    return TextStyle(
+        color: AppColor.darkGrey, fontSize: 14, fontWeight: FontWeight.bold);
+  }
+  static TextStyle get userNameStyle {
     return TextStyle(
         color: AppColor.darkGrey, fontSize: 14, fontWeight: FontWeight.bold);
   }

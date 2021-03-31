@@ -111,22 +111,7 @@ class TweetBottomSheet {
                 AppIcon.unFollow,
                 text: 'Unfollow ${model.user.username}',
               ),
-        isMyTweet
-            ? _widgetBottomSheetRow(
-                context,
-                AppIcon.delete,
-                text: 'Delete Tweet',
-                onPressed: () {
-                  _deleteTweet(
-                    context,
-                    type,
-                    model.key,
-                    parentkey: model.parentkey,
-                  );
-                },
-                isEnable: true,
-              )
-            : Container(),
+
         isMyTweet
             ? Container()
             : _widgetBottomSheetRow(
@@ -208,8 +193,7 @@ class TweetBottomSheet {
                   _deleteTweet(
                     context,
                     type,
-                    model.key,
-                    parentkey: model.parentkey,
+                    model.post_by,
                   );
                 },
                 isEnable: true,
@@ -353,12 +337,8 @@ class TweetBottomSheet {
             var myUser = authState.userModel;
             myUser = UserModel();
             // Prepare current Tweet model to reply
-            FeedModel post = new FeedModel(
-                childRetwetkey: model.key,
-                createdAt: DateTime.now().toUtc().toString(),
-                user: myUser,
-                user_id: myUser.user_id);
-            state.createReTweet(post);
+
+
             Navigator.pop(context);
           },
         ),
@@ -443,7 +423,7 @@ class TweetBottomSheet {
                   model: model,
                   type: type,
                 ),
-                id: "tweet/${model.key}",
+                id: "tweet/${model.post_id}",
               ),
             );
           },

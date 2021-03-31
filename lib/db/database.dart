@@ -70,6 +70,37 @@ class DatabaseHelper {
     return ;
   }
 
+  Future<List<ChatMessage>> get_chats_list(String condition) async {
+
+    if (db == null) {
+      db = await initDatabase();
+    }
+    String _condition = " 1 ";
+    if (condition != null) {
+      _condition = condition;
+    }
+
+    String sql =
+        "SELECT * FROM " + Constants.CHAT_TABLE + " WHERE " + _condition+" "
+            " GROUP BY chat_thread_id ORDER BY key DESC ";
+
+    List<Map> result = await db.rawQuery(sql);
+    List<ChatMessage> users = [];
+
+
+    result.forEach((row) {
+      ChatMessage u = new ChatMessage();
+      u = ChatMessage.fromJson(row);
+      if (u == null) {
+      } else {
+        if (u.senderId != null) {
+          users.add(u);
+        }
+      }
+    });
+    return users;
+  }
+
   Future<List<ChatMessage>> get_chats(String condition) async {
 
     if (db == null) {
@@ -99,6 +130,7 @@ class DatabaseHelper {
     });
     return users;
   }
+
   Future<bool> save_message(ChatMessage message) async {
     bool success = false;
     if (message == null) {

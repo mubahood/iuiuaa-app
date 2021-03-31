@@ -7,6 +7,7 @@ import 'package:iuiuaa/ui/page/message/newMessagePage.dart';
 import 'package:iuiuaa/ui/page/profile/EditProfilePage.dart';
 import 'package:iuiuaa/ui/page/profile/profilePage.dart';
 import 'package:iuiuaa/ui/theme/theme.dart';
+import 'package:iuiuaa/widgets/composeTweet.dart';
 import 'package:provider/provider.dart';
 
 import 'helper/constant.dart';
@@ -47,13 +48,14 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         routes: {
           // When navigating to the "/" route, build the FirstScreen widget.
-          '/': (context) => SplashPage(),
+          '/': (context) => HomePage(),
           Constants.PAGE_SIGNUP: (context) => Signup(),
           // When navigating to the "/second" route, build the SecondScreen widget.
           Constants.PAGE_HOME: (context) => HomePage(),
           Constants.ProfilePage: (context) => ProfilePage("1"),
           Constants.EditProfile: (context) => EditProfilePage(),
           Constants.ChatScreenPage: (context) => ChatScreenPage(),
+          Constants.ComposeTweetPage: (context) => ComposeTweetPage(),
           Constants.NewMessagePage: (context) => NewMessagePage(),
         },
         onGenerateRoute: (settings) => Routes.onGenerateRoute(settings),

@@ -46,35 +46,43 @@ class _NewMessagePageState extends State<NewMessagePage> {
 
     if (local_users != null) {
       users = [];
+      users_display = [];
       users.clear();
+      users_display.clear();
       users = local_users;
+      users_display = users;
     }
     setState(() {});
   }
 
   List<UserModel> users = [];
+  List<UserModel> users_display = [];
+  List<UserModel> users_temp = [];
   DatabaseHelper dbHelper = DatabaseHelper.instance;
 
   Widget _userTile(UserModel user) {
+    print(user.profile_photo);
     return ListTile(
       onTap: () {
         final chatState = Provider.of<ChatState>(context, listen: false);
         chatState.setChatUser = user;
-        Navigator.pushNamed(context, '/ChatScreenPage');
+        Navigator.pushNamed(context, '/ChatScreenPage',arguments: user.user_id.toString());
       },
-      leading: customImage(context, user.profile_photo_thumb, height: 40),
+
+      leading: customImage(context, user.profile_photo, height: 50),
+
       title: Row(
         children: <Widget>[
           ConstrainedBox(
             constraints:
                 BoxConstraints(minWidth: 0, maxWidth: fullWidth(context) - 104),
-            child: TitleText(user.username,
+            child: TitleText(user.first_name+" "+user.last_name,
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 overflow: TextOverflow.ellipsis),
           ),
           SizedBox(width: 3),
-          user.isVerified == "1"
+          user.isVerified.contains("1")
               ? customIcon(context,
                   icon: AppIcon.blueTick,
                   istwitterIcon: true,
@@ -84,7 +92,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
               : SizedBox(width: 0),
         ],
       ),
-      subtitle: Text(user.username),
+      subtitle: (user.campus!=null && user.campus.length>2)? Text(user.campus):Text(user.username),
     );
   }
 
@@ -94,9 +102,6 @@ class _NewMessagePageState extends State<NewMessagePage> {
 
   @override
   Widget build(BuildContext context) {
-
-    print("ROMINAA: Getting users DONE..... " + users.length.toString());
-
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -108,52 +113,56 @@ class _NewMessagePageState extends State<NewMessagePage> {
             'New Message',
           ),
         ),
-        body: users == null ? Center(child: Text("Loading..."),):
+        body: users_display == null
+            ? Center(
+                child: Text("Loading..."),
+              )
+            : Consumer<SearchState>(
+                builder: (context, state, child) {
+                  return Column(
+                    children: <Widget>[
+                      TextField(
+                        onChanged: (text) {
+                          String keyword = text.toString().trim().toLowerCase();
 
+                          users_temp = Utility.user_search(keyword, users);
+                          users_display = users_temp;
+                          setState(() {});
 
-        Consumer<SearchState>(
-          builder: (context, state, child) {
-            return Column(
-              children: <Widget>[
-                TextField(
-                  onChanged: (text) {
-                    Utility.my_toast("SEARCHING ==> "+text);
-                    //users.filterByUsername(text);
-                  },
-                  decoration: InputDecoration(
-                    hintText: "Search for people and groups",
-                    hintStyle: TextStyle(fontSize: 20),
-                    prefixIcon: customIcon(
-                      context,
-                      icon: AppIcon.search,
-                      istwitterIcon: true,
-                      iconColor: TwitterColor.woodsmoke_50,
-                      size: 25,
-                      paddingIcon: 5,
-                    ),
-                    border: InputBorder.none,
-                    fillColor: TwitterColor.mystic,
-                    filled: true,
-                  ),
-                ),
-                Expanded(
-                  child: ListView.separated(
-                    physics: BouncingScrollPhysics(),
-                    itemBuilder: (context, index) => _userTile(
-                      users[index],
-                    ),
-                    separatorBuilder: (_, index) => Divider(
-                      height: 0,
-                    ),
-                    itemCount: users.length,
-                  ),
-                )
-              ],
-            );
-          },
-        )
-
-        ,
+                          //users.filterByUsername(text);
+                        },
+                        decoration: InputDecoration(
+                          hintText: "Search for people",
+                          hintStyle: TextStyle(fontSize: 20),
+                          prefixIcon: customIcon(
+                            context,
+                            icon: AppIcon.search,
+                            istwitterIcon: true,
+                            iconColor: TwitterColor.woodsmoke_50,
+                            size: 25,
+                            paddingIcon: 5,
+                          ),
+                          border: InputBorder.none,
+                          fillColor: TwitterColor.mystic,
+                          filled: true,
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.separated(
+                          physics: BouncingScrollPhysics(),
+                          itemBuilder: (context, index) => _userTile(
+                            users_display[index],
+                          ),
+                          separatorBuilder: (_, index) => Divider(
+                            height: 0,
+                          ),
+                          itemCount: users_display.length,
+                        ),
+                      )
+                    ],
+                  );
+                },
+              ),
       ),
     );
   }

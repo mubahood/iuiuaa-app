@@ -39,7 +39,7 @@ class Tweet extends StatelessWidget {
       feedstate.clearAllDetailAndReplyTweetStack();
     }
     feedstate.getpostDetailFromDatabase(null, model: model);
-    Navigator.of(context).pushNamed('/FeedPostDetail/' + model.key);
+    Navigator.of(context).pushNamed('/FeedPostDetail/' + model.post_by);
   }
 
   @override

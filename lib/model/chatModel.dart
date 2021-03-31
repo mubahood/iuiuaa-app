@@ -60,7 +60,7 @@ class ChatMessage {
       seen: json["seen"],
       sent: json["sent"],
       chat_thread_id: json["chat_thread_id"],
-      createdAt: json["created_at"],
+      createdAt: json["createdAt"],
       timeStamp: json['timeStamp'],
       senderName: json["senderName"],
       receiverId: json["receiverId"]);

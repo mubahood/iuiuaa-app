@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -54,7 +55,6 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
         ),
       );
     }
-
 
     return ListView.builder(
       controller: _controller,
@@ -158,7 +158,7 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
         Padding(
           padding: EdgeInsets.only(right: 10, left: 10),
           child: Text(
-            Utility.getChatTime(chat.createdAt),
+            Utility.getChatTime(chat.timeStamp),
             style: Theme.of(context).textTheme.caption.copyWith(fontSize: 12),
           ),
         )
@@ -306,12 +306,22 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
     setState(() {});
 
     is_loading = false;
+
+    Future.delayed(const Duration(seconds: 5), () {
+      listen_to_new_chats();
+      print(" JULIET This line is execute after 5 seconds");
+    });
   }
 
   Future<void> submitMessage() async {
-
     if (is_loading) {
       Utility.my_toast("Loading...");
+      _my_init();
+      return;
+    }
+
+    if (sender == null) {
+      Utility.my_toast("sender is null");
       _my_init();
       return;
     }
@@ -323,16 +333,16 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
     ChatMessage message;
 
     message = ChatMessage(
-        localId: DateTime.now().toUtc().millisecondsSinceEpoch.toString(),
-        key: "",
+        localId: DateTime.now().millisecondsSinceEpoch.toString(),
+        key: DateTime.now().millisecondsSinceEpoch.toString(),
         chat_thread_id: chat_thread_id,
         message: messageController.text,
-        createdAt: DateTime.now().toUtc().toString(),
+        createdAt: DateTime.now().millisecondsSinceEpoch.toString(),
         senderId: sender.user_id,
         receiverId: receiver.user_id,
         seen: "0",
         sent: "0",
-        timeStamp: DateTime.now().toUtc().millisecondsSinceEpoch.toString(),
+        timeStamp: DateTime.now().millisecondsSinceEpoch.toString(),
         senderName: sender.first_name + " " + sender.last_name);
 
     Future.delayed(Duration(milliseconds: 300)).then((_) {
@@ -346,16 +356,12 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
     //messageList.insert((messageList.length), message);
     messageList.add(message);
 
-    print("SUMAYYA "+messageList.length.toString());
+    print("SUMAYYA " + messageList.length.toString());
     setState(() {});
     scroll_to_last();
 
-
-
-
-
     final _path = "/wp/wp-json/muhindo/v1/send_message";
-    Map<String, String> _params  = {
+    Map<String, String> _params = {
       'sender': message.senderId,
       'receiver': message.receiverId,
       'message': message.message,
@@ -365,21 +371,19 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
     final _uri = Uri.https(Constants.BASE_URL, _path, _params);
     var response = await http.get(_uri).timeout(Duration(seconds: 30));
 
-
-
     if (response == null) {
-      Utility.my_toast( "Failed to get data.");
+      Utility.my_toast("Failed to get data.");
       return;
     }
 
     if (response.statusCode != 200) {
-      Utility.my_toast('Failed to connect to internet. ' + response.statusCode.toString());
+      Utility.my_toast(
+          'Failed to connect to internet. ' + response.statusCode.toString());
       return;
     }
 
     String rawJson = response.body;
     Map<String, dynamic> map = jsonDecode(rawJson);
-
 
     ResponseModel data = ResponseModel.fromJson(map);
 
@@ -393,7 +397,7 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
       return;
     }
 
-    print("romina ========> "+data.data);
+    print("romina ========> " + data.data);
 
     if (data.code != 1) {
       Utility.my_toast(data.message);
@@ -402,23 +406,17 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
 
     ChatMessage m = ChatMessage.fromJson(jsonDecode(data.data));
 
-    if(m == null){
+    if (m == null) {
       Utility.my_toast("Failed to parse data response.");
       return;
     }
 
     try {
       dbHelper.save_message(m);
-      print("romina: saved message locally "+m.chat_thread_id);
+      print("romina: saved message locally " + m.chat_thread_id);
     } catch (e) {
       Utility.my_toast("Failed to save message locally.");
     }
-
-
-
-
-
-
   }
 
   @override
@@ -430,22 +428,24 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                "chatUser.displayName",
-                style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
-              ),
-              Text(
-                "chatUser.userName",
-                style: TextStyle(color: AppColor.darkGrey, fontSize: 15),
-              )
-            ],
-          ),
+          title: receiver != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      receiver.first_name + " " + receiver.last_name,
+                      style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      receiver.email,
+                      style: TextStyle(color: AppColor.darkGrey, fontSize: 15),
+                    )
+                  ],
+                )
+              : Text("Loading..."),
           iconTheme: IconThemeData(color: Colors.blue),
           backgroundColor: Colors.white,
           actions: <Widget>[
@@ -476,17 +476,38 @@ class _ChatScreenPageState extends State<ChatScreenPage> {
 
   void scroll_to_last() {
     try {
-      if (messageList != null &&
-          messageList.length > 1 &&
-          _controller.offset > 0) {
-        _controller.animateTo(
-          (_controller.position.maxScrollExtent + 100),
-          curve: Curves.easeOut,
-          duration: const Duration(milliseconds: 300),
-        );
-      }
+      _controller.animateTo(
+        (_controller.position.maxScrollExtent + 100),
+        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 300),
+      );
     } catch (e) {
       print("[Error] $e");
     }
+  }
+
+  Future<void> listen_to_new_chats() async {
+    if (is_loading) {
+      return;
+    }
+    Map<String, String> params = {
+      "user": receiver.user_id,
+      "thread": chat_thread_id
+    };
+    List<ChatMessage> unread = await Utility.get_web_chats(params);
+
+    if (unread == null) {
+      print("JULIET IS NULL");
+      await _my_init();
+      return;
+    }
+    if (unread.length < 1) {
+      print("JULIET IS EMPTY");
+      await _my_init();
+      return;
+    }
+
+    await _my_init();
+    scroll_to_last();
   }
 }

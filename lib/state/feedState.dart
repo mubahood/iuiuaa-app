@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:iuiuaa/helper/enum.dart';
 import 'package:iuiuaa/helper/utility.dart';
-import 'package:iuiuaa/model/feedModel.dart';
 import 'package:iuiuaa/model/UserModel.dart';
+import 'package:iuiuaa/model/feedModel.dart';
 import 'package:iuiuaa/state/appState.dart';
 // import 'authState.dart';
 
@@ -49,16 +49,10 @@ class FeedState extends AppState {
     if (!isBusy && feedlist != null && feedlist.isNotEmpty) {
       list = feedlist.where((x) {
         /// If Tweet is a comment then no need to add it in tweet list
-        if (x.parentkey != null &&
-            x.childRetwetkey == null &&
-            x.user.user_id != userModel.user_id) {
-          return false;
-        }
 
         /// Only include Tweets of logged-in user's and his following user's
         if (x.user.user_id == userModel.user_id ||
-            ([] != null &&
-                [].contains(x.user.user_id))) {
+            ([] != null && [].contains(x.user.user_id))) {
           return true;
         } else {
           return false;
@@ -97,9 +91,9 @@ class FeedState extends AppState {
     if (_tweetDetailModelList != null && _tweetDetailModelList.length > 0) {
       // var index = _tweetDetailModelList.in
       FeedModel removeTweet =
-          _tweetDetailModelList.lastWhere((x) => x.key == tweetKey);
+          _tweetDetailModelList.lastWhere((x) => x.post_id == tweetKey);
       _tweetDetailModelList.remove(removeTweet);
-      tweetReplyMap.removeWhere((key, value) => key == tweetKey);
+      tweetReplyMap.removeWhere((post_id, value) => post_id == tweetKey);
       cprint(
           "Last Tweet removed from stack. Remaining Tweet: ${_tweetDetailModelList.length}");
     }
@@ -142,37 +136,7 @@ class FeedState extends AppState {
   /// If model is null then fetch tweet from firebase
   /// [getpostDetailFromDatabase] is used to set prepare Tweetr to display Tweet detail
   /// After getting tweet detail fetch tweet coments from firebase
-  void getpostDetailFromDatabase(String postID, {FeedModel model}) async {
-    try {
-      FeedModel _tweetDetail;
-      if (model != null) {
-        // set tweet data from tweet list data.
-        // No need to fetch tweet from firebase db if data already present in tweet list
-        _tweetDetail = model;
-        setFeedModel = _tweetDetail;
-        postID = model.key;
-      } else {}
-
-      if (_tweetDetail != null) {
-        // Fetch comment tweets
-        _commentlist = List<FeedModel>();
-        // Check if parent tweet has reply tweets or not
-        if (_tweetDetail.replyTweetKeyList != null &&
-            _tweetDetail.replyTweetKeyList.length > 0) {
-          _tweetDetail.replyTweetKeyList.forEach((x) {
-            if (x == null) {
-              return;
-            }
-          });
-        } else {
-          tweetReplyMap.putIfAbsent(postID, () => _commentlist);
-          notifyListeners();
-        }
-      }
-    } catch (error) {
-      cprint(error, errorIn: 'getpostDetailFromDatabase');
-    }
-  }
+  void getpostDetailFromDatabase(String postID, {FeedModel model}) async {}
 
   /// Fetch `Retweet` model from firebase realtime kDatabase.
   /// Retweet itself  is a type of `Tweet`
@@ -180,8 +144,8 @@ class FeedState extends AppState {
     FeedModel _tweetDetail;
 
     /// If tweet is availabe in feedlist then no need to fetch it from firebase
-    if (feedlist.any((x) => x.key == postID)) {
-      _tweetDetail = feedlist.firstWhere((x) => x.key == postID);
+    if (feedlist.any((x) => x.post_id == postID)) {
+      _tweetDetail = feedlist.firstWhere((x) => x.post_id == postID);
     }
 
     return _tweetDetail;
@@ -201,15 +165,7 @@ class FeedState extends AppState {
 
   ///  It will create tweet in [Firebase kDatabase] just like other normal tweet.
   ///  update retweet count for retweet model
-  createReTweet(FeedModel model) {
-    try {
-      createTweet(model);
-      _tweetToReplyModel.retweetCount += 1;
-      updateTweet(_tweetToReplyModel);
-    } catch (error) {
-      cprint(error, errorIn: 'createReTweet');
-    }
-  }
+  createReTweet(FeedModel model) {}
 
   /// [Delete tweet] in Firebase kDatabase
   /// Remove Tweet if present in home page Tweet list
@@ -240,26 +196,7 @@ class FeedState extends AppState {
 
   /// Add/Remove like on a Tweet
   /// [postId] is tweet id, [user_id] is user's id who like/unlike Tweet
-  addLikeToTweet(FeedModel tweet, String user_id) {
-    try {
-      if (tweet.likeList != null &&
-          tweet.likeList.length > 0 &&
-          tweet.likeList.any((id) => id == user_id)) {
-        // If user wants to undo/remove his like on tweet
-        tweet.likeList.removeWhere((id) => id == user_id);
-        tweet.likeCount -= 1;
-      } else {
-        // If user like Tweet
-        if (tweet.likeList == null) {
-          tweet.likeList = [];
-        }
-        tweet.likeList.add(user_id);
-        tweet.likeCount += 1;
-      }
-    } catch (error) {
-      cprint(error, errorIn: 'addLikeToTweet');
-    }
-  }
+  addLikeToTweet(FeedModel tweet, String user_id) {}
 
   /// Add [new comment tweet] to any tweet
   /// Comment is a Tweet itself
@@ -279,21 +216,4 @@ class FeedState extends AppState {
   /// Check if Tweet is a comment
   /// If Yes it will add tweet in comment list.
   /// add [new tweet] comment to comment list
-  _onCommentAdded(FeedModel tweet) {
-    if (tweet.childRetwetkey != null) {
-      /// if Tweet is a type of retweet then it can not be a comment.
-      return;
-    }
-    if (tweetReplyMap != null && tweetReplyMap.length > 0) {
-      if (tweetReplyMap[tweet.parentkey] != null) {
-        /// Instert new comment at the top of all available comment
-        tweetReplyMap[tweet.parentkey].insert(0, tweet);
-      } else {
-        tweetReplyMap[tweet.parentkey] = [tweet];
-      }
-      cprint('Comment Added');
-    }
-    isBusy = false;
-    notifyListeners();
-  }
 }
