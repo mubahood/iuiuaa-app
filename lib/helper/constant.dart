@@ -1,6 +1,7 @@
 class Constants {
   static final String USERS_TABLE = "USERS_TABLE";
   static final String CHAT_TABLE = "CHAT_TABLE";
+  static final String POSTS_TABLE = "POSTS_TABLE";
   static final String PAGE_HOME = "/home";
   static final String PAGE_SIGNUP = "/signup";
   static final String BASE_URL = "ugnews24.info";

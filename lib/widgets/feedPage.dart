@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:iuiuaa/helper/constant.dart';
+import 'package:iuiuaa/db/database.dart';
+import 'package:iuiuaa/model/UserModel.dart';
 import 'package:iuiuaa/model/feedModel.dart';
 import 'package:iuiuaa/state/authState.dart';
 import 'package:iuiuaa/state/feedState.dart';
@@ -20,7 +21,8 @@ class FeedPage extends StatelessWidget {
   Widget _floatingActionButton(BuildContext context) {
     return FloatingActionButton(
       onPressed: () {
-        Navigator.pushNamed(context, Constants.ComposeTweetPage);
+        my_init();
+        //Navigator.pushNamed(context, Constants.ComposeTweetPage);
       },
       child: customIcon(
         context,
@@ -31,6 +33,10 @@ class FeedPage extends StatelessWidget {
       ),
     );
   }
+
+  DatabaseHelper dbHelper = DatabaseHelper.instance;
+  List<UserModel> _users = [];
+  List<FeedModel> _posts = [];
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +63,15 @@ class FeedPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+
+
+  Future<void> my_init() async {
+    print("ROBINA: STARTS");
+    _users = await dbHelper.user_get(" 1 ");
+    _posts = await dbHelper.posts_get(null);
+    print("ROBINA: STARTS");
   }
 }
 

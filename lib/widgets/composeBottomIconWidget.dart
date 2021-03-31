@@ -109,8 +109,19 @@ class _ComposeBottomIconWidgetState extends State<ComposeBottomIconWidget> {
     );
   }
 
+  onImageSelected(m){
+    if(m == null){
+      return;
+    }
+    widget.onImageIconSelcted(m);
+
+  }
   void setImage(ImageSource source) {
-    Utility.my_toast("ImagePicker 111");
+
+    getImage(context, source, onImageSelected);
+
+
+    //Utility.my_toast("ImagePicker 111" );
     /*ImagePicker.pickImage(source: source, imageQuality: 20).then((File file) {
       setState(() {
         // _image = file;

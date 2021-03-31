@@ -1,16 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:iuiuaa/db/database.dart';
 import 'package:iuiuaa/helper/constant.dart';
 import 'package:iuiuaa/helper/utility.dart';
 import 'package:iuiuaa/model/UserModel.dart';
 import 'package:iuiuaa/model/feedModel.dart';
-import 'package:iuiuaa/state/authState.dart';
-import 'package:iuiuaa/state/feedState.dart';
+import 'package:iuiuaa/model/responseModel.dart';
 import 'package:iuiuaa/state/searchState.dart';
 import 'package:iuiuaa/ui/theme/theme.dart';
 import 'package:iuiuaa/widgets/customAppBar.dart';
@@ -22,6 +23,7 @@ import 'package:provider/provider.dart';
 
 import 'composeBottomIconWidget.dart';
 import 'composeTweetImage.dart';
+import 'newWidget/customLoader.dart';
 
 class ComposeTweetPage extends StatefulWidget {
   ComposeTweetPage({Key key}) : super(key: key);
@@ -64,12 +66,16 @@ class _ComposeTweetReplyPageState extends State<ComposeTweetPage> {
   }
 
   void _onCrossIconPressed() {
+    getImage(context, ImageSource.gallery, onImageSelected);
     setState(() {
       _image = null;
     });
   }
 
   void _onImageIconSelcted(File file) {
+    if (file == null) {
+      return;
+    }
     setState(() {
       _image = file;
     });
@@ -77,23 +83,24 @@ class _ComposeTweetReplyPageState extends State<ComposeTweetPage> {
 
   /// Submit tweet to save in firebase database
   void _submitButton() async {
+    if (is_loading) {
+      Utility.my_toast_short("Loading...");
+      return;
+    }
+
     if (_textEditingController.text == null ||
         _textEditingController.text.isEmpty ||
         _textEditingController.text.length > 500) {
       return;
     }
 
-    Utility.my_toast("Time to post ==> " + loggedinUser.first_name);
-
     //kScreenloader.showLoader(context);
-    kScreenloader.hideLoader();
-
+    //kScreenloader.hideLoader();
 
     final _path = "/wp/wp-json/muhindo/v1/post_create";
 
     final _uri = Uri.https(Constants.BASE_URL, _path);
     http.MultipartRequest request = new http.MultipartRequest("POST", _uri);
-
 
     print("ROMINAAA: Before");
     request.fields.addAll({'description': _textEditingController.text});
@@ -102,19 +109,72 @@ class _ComposeTweetReplyPageState extends State<ComposeTweetPage> {
     request.fields.addAll({'post_category': "Jobs"});
     request.fields.addAll({'tags': "Jobs"});
 
-
     if (_image != null) {
       http.MultipartFile multipartFile =
           await http.MultipartFile.fromPath('image', _image.path);
       request.files.add(multipartFile);
     }
 
-    print("ROMINAAA: After ");
+    show_loader();
+
+    http.StreamedResponse response =
+        await request.send().timeout(Duration(seconds: 30));
+
+    if (response.statusCode != 200) {
+      print(response.statusCode);
+      return;
+    }
+
+    Uint8List s = await response.stream.toBytes();
+    var rawJson = Utf8Decoder().convert(s);
+    if (rawJson == null) {
+      Utility.my_toast_short("Failed to post. Please try again.");
+      hide_loader();
+      return;
+    }
+
+    Map<String, dynamic> map = jsonDecode(rawJson);
+    ResponseModel data = ResponseModel.fromJson(map);
+
+    if (data == null) {
+      Utility.my_toast_short('Totally failed to decode data.');
+      hide_loader();
+      return;
+    }
+
+    if (data.code == null) {
+      Utility.my_toast_short('Failed to decode data.');
+      hide_loader();
+      return;
+    }
+
+    if (data.code != 1) {
+      Utility.my_toast_short(data.message);
+      hide_loader();
+      return;
+    }
+
+    Map<String, dynamic> m = jsonDecode(data.data);
+    FeedModel newPost = FeedModel.fromJson(m);
+
+    if (newPost == null) {
+      Utility.my_toast_short("Failed parse post.");
+      hide_loader();
+      return;
+    }
+
+    bool res = await dbHelper.save_post(newPost);
+    if (res) {
+      Utility.my_toast('Posted Successfully!');
+      Navigator.pop(context);
+      hide_loader();
+      return;
+    } else {
+      Utility.my_toast_short('Failed to save post' + newPost.post_id);
+    }
+
+    hide_loader();
     return;
-
-
-
-
 
     /// If tweet did not contain image
   }
@@ -123,7 +183,6 @@ class _ComposeTweetReplyPageState extends State<ComposeTweetPage> {
   /// If tweet is new tweet then `parentkey` and `childRetwetkey` should be null
   /// IF tweet is a comment then it should have `parentkey`
   /// IF tweet is a retweet then it should have `childRetwetkey`
-
 
   @override
   Widget build(BuildContext context) {
@@ -164,11 +223,38 @@ class _ComposeTweetReplyPageState extends State<ComposeTweetPage> {
       dbHelper = DatabaseHelper.instance;
     }
     if (dbHelper == null) {
-      Utility.my_toast("Failed to initialized database");
+      Utility.my_toast_short("Failed to initialized database");
       return;
     }
     loggedinUser = await dbHelper.get_logged_user();
     setState(() {});
+  }
+
+  onImageSelected() {
+    Utility.my_toast_short("Done selection");
+  }
+
+  bool is_loading = false;
+  CustomLoader loader;
+
+  void hide_loader() {
+    if (!is_loading) {
+      return;
+    }
+    loader.hideLoader();
+    is_loading = false;
+  }
+
+  void show_loader() {
+    if (is_loading) {
+      return;
+    }
+    if (loader == null) {
+      loader = CustomLoader();
+    }
+
+    loader.showLoader(context);
+    is_loading = true;
   }
 }
 
@@ -275,7 +361,6 @@ class _ComposeTweet
 
   @override
   Widget build(BuildContext context) {
-    var authState = Provider.of<AuthState>(context, listen: false);
     return Container(
       height: fullHeight(context),
       padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
@@ -306,10 +391,6 @@ class _ComposeTweet
                 ComposeTweetImage(
                   image: viewState._image,
                   onCrossIconPressed: viewState._onCrossIconPressed,
-                ),
-                _UserList(
-                  list: Provider.of<SearchState>(context).userlist,
-                  textEditingController: viewState._textEditingController,
                 )
               ],
             ),
@@ -373,7 +454,7 @@ class _UserList extends StatelessWidget {
           return _UserTile(
             user: list[index],
             onUserSelected: (user) {
-              Utility.my_toast("Changed ==> " + user.first_name);
+              Utility.my_toast_short("Changed ==> " + user.first_name);
             },
           );
         },

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:iuiuaa/helper/constant.dart';
 import 'package:iuiuaa/model/UserModel.dart';
 import 'package:iuiuaa/model/chatModel.dart';
+import 'package:iuiuaa/model/feedModel.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -19,7 +20,6 @@ class DatabaseHelper {
   // only have a single app-wide reference to the database
 
   Future<Database> get database async {
-
     if (db != null) return db;
     // lazily instantiate the db the first time it is accessed
     db = await initDatabase();
@@ -34,8 +34,6 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
 
-
-
     print("BEFORE CREATE");
     return await openDatabase(path,
         version: _databaseVersion, onCreate: _onCreate);
@@ -47,6 +45,7 @@ class DatabaseHelper {
     await db.execute(UserModel.CERATE_USER_DATABSE());
     //await db.execute(ChatMessage.DROP_CHAT_DATABSE());
     await db.execute(ChatMessage.CREATE_CHAT_DATABSE());
+    await db.execute(FeedModel.CREATE_CHAT_DATABSE());
     print("CREATING NEW DB done ");
   }
 
@@ -67,11 +66,10 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
     _onCreate(db, _databaseVersion);
-    return ;
+    return;
   }
 
   Future<List<ChatMessage>> get_chats_list(String condition) async {
-
     if (db == null) {
       db = await initDatabase();
     }
@@ -80,13 +78,15 @@ class DatabaseHelper {
       _condition = condition;
     }
 
-    String sql =
-        "SELECT * FROM " + Constants.CHAT_TABLE + " WHERE " + _condition+" "
+    String sql = "SELECT * FROM " +
+        Constants.CHAT_TABLE +
+        " WHERE " +
+        _condition +
+        " "
             " GROUP BY chat_thread_id ORDER BY key DESC ";
 
     List<Map> result = await db.rawQuery(sql);
     List<ChatMessage> users = [];
-
 
     result.forEach((row) {
       ChatMessage u = new ChatMessage();
@@ -102,7 +102,6 @@ class DatabaseHelper {
   }
 
   Future<List<ChatMessage>> get_chats(String condition) async {
-
     if (db == null) {
       db = await initDatabase();
     }
@@ -117,7 +116,6 @@ class DatabaseHelper {
     List<Map> result = await db.rawQuery(sql);
     List<ChatMessage> users = [];
 
-
     result.forEach((row) {
       ChatMessage u = new ChatMessage();
       u = ChatMessage.fromJson(row);
@@ -129,6 +127,90 @@ class DatabaseHelper {
       }
     });
     return users;
+  }
+
+  Future<List<FeedModel>> get_posts(String condition) async {
+    if (db == null) {
+      db = await initDatabase();
+    }
+    String _condition = " 1 ";
+    if (condition != null) {
+      _condition = condition;
+    }
+
+    String sql =
+        "SELECT * FROM " + Constants.POSTS_TABLE + " WHERE " + _condition;
+
+    List<Map> result = await db.rawQuery(sql);
+    List<FeedModel> posts = [];
+
+    result.forEach((row) {
+      FeedModel u = new FeedModel();
+      u = FeedModel.fromJson(row);
+      if (u == null) {
+      } else {
+        if (u.post_id != null) {
+          posts.add(u);
+        }
+      }
+    });
+    return posts;
+  }
+
+  Future<bool> save_post(FeedModel post) async {
+    bool success = false;
+    if (post == null) {
+      return success;
+    }
+
+    if (post.post_id == null) {
+      return success;
+    }
+
+    if (post.post_id.isEmpty) {
+      return false;
+    }
+
+    List<FeedModel> posts =
+        await get_posts(" post_id = '" + post.post_id + "'");
+
+    bool is_update = false;
+
+    if (posts != null) {
+      if (!posts.isEmpty) {
+        is_update = true;
+      } else {
+        is_update = false;
+      }
+    }
+
+    if (db == null) {
+      db = await instance.database;
+    }
+
+    if (is_update) {
+      try {
+        print("TIME TO UPDATE post ==> " + post.post_id);
+        await db.update(Constants.POSTS_TABLE, post.toJson(),
+            where: 'localId = ?', whereArgs: [post.post_id]);
+        print("muhindo TASK ==> updated chat! success KEY: " + post.post_id);
+        success = true;
+      } catch (e) {
+        success = false;
+        print("muhindo FAILED updated  => " + e.toString());
+      }
+    } else {
+      try {
+        await db.insert(Constants.POSTS_TABLE, post.toJson());
+        print("muhindo TASK ==> inserted success " + post.post_id);
+        success = true;
+      } catch (e) {
+        success = false;
+        print("muhindo FAILED INSERT insert => " + e.toString());
+      }
+    }
+
+    return success;
   }
 
   Future<bool> save_message(ChatMessage message) async {
@@ -146,7 +228,7 @@ class DatabaseHelper {
     }
 
     List<ChatMessage> chats =
-    await get_chats(" localId = '" + message.localId + "'");
+        await get_chats(" localId = '" + message.localId + "'");
 
     bool is_update = false;
 
@@ -158,18 +240,16 @@ class DatabaseHelper {
       }
     }
 
-
     if (db == null) {
       db = await instance.database;
     }
 
     if (is_update) {
       try {
-        print("TIME TO UPDATE chat ==> "+message.localId);
+        print("TIME TO UPDATE chat ==> " + message.localId);
         await db.update(Constants.CHAT_TABLE, message.toJson(),
             where: 'localId = ?', whereArgs: [message.localId]);
-        print("muhindo TASK ==> updated chat! success KEY: " +
-            message.key);
+        print("muhindo TASK ==> updated chat! success KEY: " + message.key);
         success = true;
       } catch (e) {
         success = false;
@@ -189,6 +269,35 @@ class DatabaseHelper {
     return success;
   }
 
+  Future<List<FeedModel>> posts_get(String condition) async {
+    if (db == null) {
+      db = await initDatabase();
+    }
+    String _condition = " 1 ORDER BY post_id DESC ";
+    if (condition != null) {
+      _condition = condition;
+    }
+
+    String sql =
+        "SELECT * FROM " + Constants.POSTS_TABLE + " WHERE " + _condition;
+
+    //String sql = "SELECT * FROM " + Constants.USERS_TABLE;
+
+    List<Map> result = await db.rawQuery(sql);
+    List<FeedModel> items = [];
+
+    result.forEach((row) {
+      FeedModel res = new FeedModel();
+      res = FeedModel.fromJson(row);
+      if (res == null) {
+      } else {
+        if (res.post_id != null) {
+          items.add(res);
+        }
+      }
+    });
+    return items;
+  }
 
   Future<List<UserModel>> user_get(String condition) async {
     if (db == null) {
@@ -247,16 +356,12 @@ class DatabaseHelper {
       }
     }
 
-
     if (db == null) {
       db = await instance.database;
-    }else{
-
-    }
-
+    } else {}
 
     if (is_update) {
-      print("SUMAYYA TO UPDATE ==> "+userModel.user_id);
+      print("SUMAYYA TO UPDATE ==> " + userModel.user_id);
       try {
         await db.update(Constants.USERS_TABLE, userModel.toJson(),
             where: 'user_id = ?', whereArgs: [userModel.user_id]);
@@ -268,7 +373,7 @@ class DatabaseHelper {
         print("muhindo FAILED updated  => " + e.toString());
       }
     } else {
-      print("SUMAYYA TO INSERT =======> "+userModel.user_id.toString());
+      print("SUMAYYA TO INSERT =======> " + userModel.user_id.toString());
       try {
         await db.insert(Constants.USERS_TABLE, userModel.toJson());
         print("muhindo TASK ==> inserted success " + userModel.user_id);
