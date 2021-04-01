@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iuiuaa/state/searchState.dart';
 import 'package:iuiuaa/ui/page/Auth/signup.dart';
+import 'package:iuiuaa/ui/page/common/splash.dart';
 import 'package:iuiuaa/ui/page/homePage.dart';
 import 'package:iuiuaa/ui/page/message/newMessagePage.dart';
 import 'package:iuiuaa/ui/page/profile/EditProfilePage.dart';
 import 'package:iuiuaa/ui/page/profile/profilePage.dart';
 import 'package:iuiuaa/ui/theme/theme.dart';
 import 'package:iuiuaa/widgets/composeTweet.dart';
+import 'package:iuiuaa/widgets/feedPostDetail.dart';
+import 'package:iuiuaa/widgets/imageViewPage.dart';
 import 'package:provider/provider.dart';
 
 import 'helper/constant.dart';
@@ -17,7 +20,6 @@ import 'state/authState.dart';
 import 'state/chatState.dart';
 import 'state/feedState.dart';
 import 'state/notificationState.dart';
-import 'ui/page/common/splash.dart';
 import 'ui/page/message/chatScreenPage.dart';
 
 void main() async {
@@ -48,14 +50,17 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         routes: {
           // When navigating to the "/" route, build the FirstScreen widget.
-          '/': (context) => HomePage(),
+          '/': (context) => SplashPage(),
           Constants.PAGE_SIGNUP: (context) => Signup(),
           // When navigating to the "/second" route, build the SecondScreen widget.
           Constants.PAGE_HOME: (context) => HomePage(),
-          Constants.ProfilePage: (context) => ProfilePage("1"),
+          Constants.SplashPage: (context) => SplashPage(),
+          Constants.ProfilePage: (context) => ProfilePage(),
           Constants.EditProfile: (context) => EditProfilePage(),
           Constants.ChatScreenPage: (context) => ChatScreenPage(),
+          Constants.ImageViewPge: (context) => ImageViewPge(),
           Constants.ComposeTweetPage: (context) => ComposeTweetPage(),
+          Constants.FeedPostDetail: (context) => FeedPostDetail(),
           Constants.NewMessagePage: (context) => NewMessagePage(),
         },
         onGenerateRoute: (settings) => Routes.onGenerateRoute(settings),

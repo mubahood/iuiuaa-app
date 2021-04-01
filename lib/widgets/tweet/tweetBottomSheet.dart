@@ -423,7 +423,7 @@ class TweetBottomSheet {
                   model: model,
                   type: type,
                 ),
-                id: "tweet/${model.post_id}",
+                id: "tweet/${model.post_by}",
               ),
             );
           },

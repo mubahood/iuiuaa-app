@@ -46,7 +46,7 @@ class _WelcomePageState extends State<WelcomePage> {
             ),
             Spacer(),
             TitleText(
-              'See what\'s happening in the world right now.',
+              'Join IUIU-Alumni Association and strengthen your network w right now.',
               fontSize: 25,
             ),
             SizedBox(

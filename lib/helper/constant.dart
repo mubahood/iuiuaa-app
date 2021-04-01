@@ -3,14 +3,17 @@ class Constants {
   static final String CHAT_TABLE = "CHAT_TABLE";
   static final String POSTS_TABLE = "POSTS_TABLE";
   static final String PAGE_HOME = "/home";
+  static final String SplashPage = "/SplashPage";
   static final String PAGE_SIGNUP = "/signup";
   static final String BASE_URL = "ugnews24.info";
   static final String BASE_PATH = "/wp/wp-json/muhindo/v1/";
   static final String ProfilePage = "/ProfilePage";
   static final String EditProfile = "/EditProfile";
   static final String NewMessagePage = "/NewMessagePage";
+  static final String ImageViewPge = "/ImageViewPge";
   static final String ChatScreenPage = "/ChatScreenPage";
   static final String ComposeTweetPage = "/composeTweet";
+  static final String FeedPostDetail = "/FeedPostDetail";
   static final Duration timeLimit = Duration(seconds: 30);
 
   static final List<String> awards = [

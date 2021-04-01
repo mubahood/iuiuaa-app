@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:iuiuaa/db/database.dart';
+import 'package:iuiuaa/helper/constant.dart';
+import 'package:iuiuaa/helper/utility.dart';
+import 'package:iuiuaa/model/UserModel.dart';
 import 'package:iuiuaa/state/appState.dart';
-import 'package:iuiuaa/state/authState.dart';
-import 'package:iuiuaa/state/feedState.dart';
-import 'package:iuiuaa/state/notificationState.dart';
-import 'package:iuiuaa/state/searchState.dart';
 import 'package:iuiuaa/ui/page/message/chatListPage.dart';
 import 'package:iuiuaa/widgets/bottomMenuBar.dart';
 import 'package:iuiuaa/widgets/feedPage.dart';
@@ -12,8 +12,6 @@ import 'package:provider/provider.dart';
 import 'common/sidebar.dart';
 
 class HomePage extends StatefulWidget {
-  HomePage({Key key}) : super(key: key);
-
   _HomePageState createState() => _HomePageState();
 }
 
@@ -22,11 +20,32 @@ class _HomePageState extends State<HomePage> {
   final refreshIndicatorKey = new GlobalKey<RefreshIndicatorState>();
   int pageIndex = 0;
 
+  DatabaseHelper dbHelper = DatabaseHelper.instance;
+  bool is_loading = true;
+  UserModel logged_in_user = null;
+
+  Future<void> _my_init() async {
+    if (dbHelper == null) {
+      DatabaseHelper dbHelper = DatabaseHelper.instance;
+    }
+    if (dbHelper == null) {
+      Utility.my_toast_short("Failed to init db.");
+      return;
+    }
+    logged_in_user = await dbHelper.get_logged_user();
+    if (logged_in_user == null) {
+      Utility.my_toast_short("You are not logged in.");
+      Navigator.pushNamed(context, Constants.PAGE_HOME)
+          .then((value) => {Navigator.pop(context)});
+      return;
+    }
+    is_loading = false;
+  }
+
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      var state = Provider.of<AppState>(context, listen: false);
-      state.setpageIndex = 0;
+      _my_init();
       initTweets();
       initProfile();
       initSearch();
@@ -37,26 +56,13 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
-  void initTweets() {
-    var state = Provider.of<FeedState>(context, listen: false);
-    state.databaseInit();
-    state.getDataFromDatabase();
-  }
+  void initTweets() {}
 
-  void initProfile() {
-    var state = Provider.of<AuthState>(context, listen: false);
-    state.databaseInit();
-  }
+  void initProfile() {}
 
-  void initSearch() {
-    var searchState = Provider.of<SearchState>(context, listen: false);
-    searchState.getDataFromDatabase();
-  }
+  void initSearch() {}
 
-  void initNotificaiton() {
-    var state = Provider.of<NotificationState>(context, listen: false);
-    var authstate = Provider.of<AuthState>(context, listen: false);
-  }
+  void initNotificaiton() {}
 
   void initChat() {}
 

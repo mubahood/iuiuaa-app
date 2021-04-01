@@ -7,10 +7,10 @@ part 'feedModel.g.dart';
 @JsonSerializable()
 class FeedModel {
   String post_id = "";
-  String description = "";
-  String post_by = "";
-  String view_count = "";
-  String createdAt = "";
+  String description= "";
+  String post_by= "";
+  String view_count= "";
+  String createdAt= "";
   String post_thumbnail_small;
   String post_thumbnail;
   String post_category;

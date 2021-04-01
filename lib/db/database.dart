@@ -52,7 +52,7 @@ class DatabaseHelper {
   Database db;
 
   Future<UserModel> get_logged_user() async {
-    List<UserModel> users = await user_get(" user_id = 1 ");
+    List<UserModel> users = await user_get(" fcmToken = 1 ");
     if (users == null) {
       return null;
     }
@@ -143,6 +143,7 @@ class DatabaseHelper {
 
     List<Map> result = await db.rawQuery(sql);
     List<FeedModel> posts = [];
+    List<UserModel> users = await this.user_get("  1 ");
 
     result.forEach((row) {
       FeedModel u = new FeedModel();
@@ -150,7 +151,18 @@ class DatabaseHelper {
       if (u == null) {
       } else {
         if (u.post_id != null) {
-          posts.add(u);
+          if (users != null && !users.isEmpty) {
+
+            for(int i = 0; i<users.length; i++){
+              if (users[i].user_id == u.post_by) {
+                u.user = users[i];
+                print("ROMINA FOUND ===> " + users[i].first_name);
+                break;
+              }
+            }
+
+            posts.add(u);
+          } else {}
         }
       }
     });
@@ -269,7 +281,7 @@ class DatabaseHelper {
     return success;
   }
 
-  Future<List<FeedModel>> posts_get(String condition) async {
+    Future<List<FeedModel>> posts_get(String condition) async {
     if (db == null) {
       db = await initDatabase();
     }
@@ -347,10 +359,16 @@ class DatabaseHelper {
         await user_get(" user_id = ${userModel.user_id}   ");
 
     bool is_update = false;
+    bool is_logged_in = false;
 
     if (users != null) {
       if (!users.isEmpty) {
         is_update = true;
+        if(users[0].fcmToken == "1"){
+          is_logged_in = true;
+        }else{
+          is_logged_in = false;
+        }
       } else {
         is_update = false;
       }
@@ -363,11 +381,18 @@ class DatabaseHelper {
     if (is_update) {
       print("SUMAYYA TO UPDATE ==> " + userModel.user_id);
       try {
-        await db.update(Constants.USERS_TABLE, userModel.toJson(),
-            where: 'user_id = ?', whereArgs: [userModel.user_id]);
-        print("muhindo TASK ==> updated success " +
-            userModel.profile_photo_large);
-        success = true;
+
+
+        if(!is_logged_in){
+          await db.update(Constants.USERS_TABLE, userModel.toJson(),
+              where: 'user_id = ?', whereArgs: [userModel.user_id]);
+          print("muhindo TASK ==> updated success " +
+              userModel.profile_photo_large);
+          success = true;
+        }else{
+          print("SUMAYYA TO cannoott UPDATE  LOGGED USER  ==> " + userModel.user_id);
+        }
+
       } catch (e) {
         success = false;
         print("muhindo FAILED updated  => " + e.toString());

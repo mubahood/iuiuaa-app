@@ -63,7 +63,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> check_login() async {
     userModel = await dbHelper.get_logged_user();
-    setState(() {});
+
 
     //dbHelper.save_user(userModel);
     if (userModel == null) {
@@ -71,6 +71,35 @@ class _EditProfilePageState extends State<EditProfilePage> {
       Navigator.pop(context);
       return;
     }
+
+    first_name.text = userModel.first_name.toString();
+    last_name.text = userModel.last_name.toString();
+    _nationality.text = userModel.nationality.toString();
+    _location.text = userModel.address.toString();
+    _bio.text = userModel.about.toString();
+    _dob.text = userModel.dob.toString();
+    _occupation.text = userModel.occupation.toString();
+    _gender.text = userModel.gender.toString();
+    _phone_number.text = userModel.phone_number.toString();
+    _whatsapp.text = userModel.whatsapp.toString();
+    _linkedin.text = userModel.linkedin.toString();
+    _twitter.text = userModel.twitter.toString();
+    _facebook.text = userModel.facebook.toString();
+
+    _program_item_award.text = NewProgramItem.award;
+    _programs = "";
+    programs.forEach((element) {
+      _programs += element.award +
+          " in " +
+          element.title +
+          " at " +
+          element.campus +
+          " campus - " +
+          element.year +
+          ",\n";
+    });
+    _programs_controller.text = _programs;
+
 
     if (userModel.programs != null) {
       List<ProgramItem> pros = ProgramItem.fromJsonList(userModel.programs);
@@ -81,6 +110,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
         });
       }
     }
+
+    setState(() {
+
+    });
   }
 
   @override
@@ -124,33 +157,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget _body() {
     cprint(userModel.profile_photo_large);
 
-    first_name.text = userModel.first_name.toString();
-    last_name.text = userModel.last_name.toString();
-    _nationality.text = userModel.nationality.toString();
-    _location.text = userModel.address.toString();
-    _bio.text = userModel.about.toString();
-    _dob.text = userModel.dob.toString();
-    _occupation.text = userModel.occupation.toString();
-    _gender.text = userModel.gender.toString();
-    _phone_number.text = userModel.phone_number.toString();
-    _whatsapp.text = userModel.whatsapp.toString();
-    _linkedin.text = userModel.linkedin.toString();
-    _twitter.text = userModel.twitter.toString();
-    _facebook.text = userModel.facebook.toString();
-
-    _program_item_award.text = NewProgramItem.award;
-    _programs = "";
-    programs.forEach((element) {
-      _programs += element.award +
-          " in " +
-          element.title +
-          " at " +
-          element.campus +
-          " campus - " +
-          element.year +
-          ",\n";
-    });
-    _programs_controller.text = _programs;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,6 +350,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       selectedItem: userModel.nationality,
       onChanged: (value) {
         setState(() {
+          _nationality.text = value;
           userModel.nationality = value;
         });
       },
@@ -357,6 +364,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       selectedItem: userModel.gender,
       onChanged: (value) {
         setState(() {
+          _gender.text = value;
           userModel.gender = value;
         });
       },

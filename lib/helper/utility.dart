@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:iuiuaa/db/database.dart';
 import 'package:iuiuaa/model/UserModel.dart';
 import 'package:iuiuaa/model/chatModel.dart';
+import 'package:iuiuaa/model/feedModel.dart';
 import 'package:iuiuaa/ui/theme/theme.dart';
 import 'package:iuiuaa/widgets/customWidgets.dart';
 import 'package:iuiuaa/widgets/newWidget/customLoader.dart';
@@ -220,7 +221,43 @@ class Utility {
 
       return users;
     } catch (E) {
-      print("ROMINA: failed Because " + E);
+      return [];
+    }
+  }
+
+  static Future<List<FeedModel>> get_web_posts(Map params) async {
+    final _authority = Constants.BASE_URL;
+    final _path = Constants.BASE_PATH + "posts";
+    final _uri = Uri.https(_authority, _path, params);
+    try {
+      final response = await http.get(_uri).timeout(Constants.timeLimit);
+      if (response.statusCode != 200) {
+        print("ROMINA: FAILED RESP ==> " +
+            _uri.path +
+            " == " +
+            response.statusCode.toString());
+        return [];
+      }
+      Iterable l = json.decode(response.body);
+      List<FeedModel> posts =
+          List<FeedModel>.from(l.map((model) => FeedModel.fromJson(model)));
+      if (posts == null) {
+        return [];
+      } else {
+        DatabaseHelper dbHelper = DatabaseHelper.instance;
+        if (dbHelper != null) {
+          posts.forEach((element) {
+            if (element != null) {
+              try {
+                dbHelper.save_post(element);
+              } catch (e) {}
+            }
+          });
+        }
+      }
+
+      return posts;
+    } catch (E) {
       return [];
     }
   }

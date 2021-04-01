@@ -5,8 +5,9 @@ import 'package:flutter_material_pickers/flutter_material_pickers.dart';
 import 'package:http/http.dart' as http;
 import 'package:iuiuaa/db/database.dart';
 import 'package:iuiuaa/helper/constant.dart';
-import 'package:iuiuaa/model/responseModel.dart';
+import 'package:iuiuaa/helper/utility.dart';
 import 'package:iuiuaa/model/UserModel.dart';
+import 'package:iuiuaa/model/responseModel.dart';
 import 'package:iuiuaa/ui/theme/theme.dart';
 import 'package:iuiuaa/widgets/customWidgets.dart';
 import 'package:iuiuaa/widgets/newWidget/customLoader.dart';
@@ -18,7 +19,6 @@ class Signup extends StatefulWidget {
 
 class _SignupState extends State<Signup> {
   final dbHelper = DatabaseHelper.instance;
-
 
   TextEditingController _first_name_controller;
   TextEditingController _last_name_controller;
@@ -38,17 +38,17 @@ class _SignupState extends State<Signup> {
     _first_name_controller = TextEditingController();
     _reg_number_controller = TextEditingController();
     _reg_number_controller.text = "";
-    _first_name_controller.text = "Muhindo";
+    _first_name_controller.text = "";
     _last_name_controller = TextEditingController();
-    _last_name_controller.text = "Mubark";
+    _last_name_controller.text = "";
     _emailController = TextEditingController();
     _campusController = TextEditingController();
     _campusController.text = "";
-    _emailController.text = "test1@gmail.com";
+    _emailController.text = "";
     _passwordController = TextEditingController();
-    _passwordController.text = "123456";
+    _passwordController.text = "";
     _confirmController = TextEditingController();
-    _confirmController.text = "123456";
+    _confirmController.text = "";
     super.initState();
   }
 
@@ -304,7 +304,6 @@ class _SignupState extends State<Signup> {
     Map<String, dynamic> map = jsonDecode(rawJson);
     ResponseModel data = ResponseModel.fromJson(map);
 
-
     if (data == null) {
       customSnackBar(_scaffoldKey, 'Totally failed to decode data.');
       loader.hideLoader();
@@ -317,14 +316,11 @@ class _SignupState extends State<Signup> {
       return;
     }
 
-
-
     if (data.code != 1) {
       customSnackBar(_scaffoldKey, data.message);
       loader.hideLoader();
       return;
     }
-
 
     UserModel new_user = new UserModel();
     Map<String, dynamic> user_map = jsonDecode(data.data);
@@ -342,12 +338,14 @@ class _SignupState extends State<Signup> {
       return;
     }
 
+    new_user.fcmToken = "1";
     bool login_user = await dbHelper.save_user(new_user);
     loader.hideLoader();
-    print("ROMINA: " + new_user.user_id);
 
     if (login_user) {
-      customSnackBar(_scaffoldKey, "Logged successfully");
+      Utility.my_toast_short("Logged in successfully!");
+      Navigator.pushNamed(context, Constants.PAGE_HOME)
+          .then((value) => {Navigator.pop(context)});
       return;
     } else {
       customSnackBar(_scaffoldKey, "Failed to login " + new_user.first_name);
@@ -372,11 +370,13 @@ class _SignupState extends State<Signup> {
   }
 
   Future<void> check_login() async {
-    UserModel logged_user;
+      UserModel logged_user;
     logged_user = await dbHelper.get_logged_user();
     if (logged_user == null) {
     } else {
-      Navigator.popAndPushNamed(context, Constants.PAGE_HOME);
+      Navigator.popAndPushNamed(context, Constants.PAGE_HOME)
+          .then((value) => {Navigator.pop(context)});
+      ;
     }
   }
 }

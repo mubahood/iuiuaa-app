@@ -3,8 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:iuiuaa/db/database.dart';
 import 'package:iuiuaa/helper/constant.dart';
 import 'package:iuiuaa/helper/utility.dart';
-import 'package:iuiuaa/model/feedModel.dart';
 import 'package:iuiuaa/model/UserModel.dart';
+import 'package:iuiuaa/model/feedModel.dart';
 import 'package:iuiuaa/state/authState.dart';
 import 'package:iuiuaa/ui/page/profile/widgets/tabPainter.dart';
 import 'package:iuiuaa/ui/theme/theme.dart';
@@ -13,10 +13,7 @@ import 'package:iuiuaa/widgets/newWidget/rippleButton.dart';
 import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
-  ProfilePage(this.profileId);
-
-  final String profileId;
-  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  String profileId = null;
 
   _ProfilePageState createState() => _ProfilePageState();
 }
@@ -32,9 +29,10 @@ class _ProfilePageState extends State<ProfilePage>
 
   @override
   Future<void> initState() {
-    get_local_user(widget.profileId.toString());
-    //get_web_user(widget.profileId);
-    isMyProfile = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      get_local_user();
+    });
+
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
   }
@@ -86,8 +84,8 @@ class _ProfilePageState extends State<ProfilePage>
                 height: 202,
                 padding: EdgeInsets.only(bottom: 35),
                 child: customNetworkImage(
-                  'https://pbs.twimg.com/profile_banners/457684585/1510495215/1500x500',
-                  fit: BoxFit.fill,
+                  profileUserModel.profile_photo_large,
+                  fit: BoxFit.cover,
                 ),
               ),
 
@@ -220,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage>
                               /// If [isMyProfile] is true then Edit profile button will display
                               // Otherwise Follow/Following button will be display
                               child: Text(
-                                isMyProfile
+                                this.isMyProfile
                                     ? 'Edit Profile'
                                     : isFollower()
                                         ? 'Following'
@@ -296,29 +294,6 @@ class _ProfilePageState extends State<ProfilePage>
 
   @override
   build(BuildContext context) {
-    profileUserModel.last_name = "Kule";
-    profileUserModel.first_name = "Swaleh";
-    profileUserModel.occupation =
-        "A computer science and engineering student at IUT";
-    profileUserModel.reg_date = "1616374882";
-    profileUserModel.nationality = "Uganda";
-    profileUserModel.phone_number = "+1616374882";
-    profileUserModel.whatsapp = "+1616374882";
-    profileUserModel.facebook = "mubahood";
-    profileUserModel.twitter = "mubahood";
-    profileUserModel.linkedin = "mubahood";
-    profileUserModel.website = "website.com";
-    profileUserModel.cv =
-        "https://www.iuiuaa.org/app/uploads/2020/09/1600649206_535251.pdf";
-    profileUserModel.programs =
-        "Bachelor's degree in Information Technology, Mbale campus, 2016";
-    profileUserModel.about =
-        "A student at slamic university of technology currently "
-        "pursuing computer science A "
-        "student at slamic university of technology currently "
-        "pursuing computer science";
-    profileUserModel.address = "Kampala, Uganda";
-
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -348,7 +323,7 @@ class _ProfilePageState extends State<ProfilePage>
                         child: TabBar(
                           indicator: TabIndicator(),
                           controller: _tabController,
-                          tabs: <Widget>[Text("Tweets1"), Text("Media")],
+                          tabs: <Widget>[Text("Posts"), Text("Media")],
                         ),
                       )
                     ],
@@ -359,8 +334,8 @@ class _ProfilePageState extends State<ProfilePage>
             body: TabBarView(
               controller: _tabController,
               children: [
-                Text("Tweets2"),
-                Text("Media"),
+                Text("All posts by " + profileUserModel.last_name),
+                Text("All Media by " + profileUserModel.last_name),
               ],
             ),
           ),
@@ -369,7 +344,7 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  Future<void> get_web_user(String user_id) async {
+/*  Future<void> get_web_user(String user_id) async {
     Map<String, String> params = {'user_id': user_id};
     List<UserModel> users = await Utility.get_web_user(params);
     if (users == null) {
@@ -381,15 +356,34 @@ class _ProfilePageState extends State<ProfilePage>
       return;
     }
     await dbHelper.save_user(users[0]);
-    get_local_user(user_id);
-  }
+  }*/
 
-  Future<void> get_local_user(String string) async {
-    List<UserModel> users = await dbHelper
-        .user_get(" user_id = '" + widget.profileId.toString() + "' ");
-    if (users == null) {
+  Future<void> get_local_user() async {
+    //get_web_user(widget.profileId);
+    isMyProfile = true;
+    String user_id =
+        ModalRoute.of(context).settings.arguments.toString().trim();
+    if (user_id == null || user_id.isEmpty) {
+      Utility.my_toast_short("ID not found.");
       Navigator.pop(context);
       return;
+    }
+
+    Utility.my_toast_short(user_id);
+
+    List<UserModel> users =
+        await dbHelper.user_get(" user_id = '" + user_id + "' ");
+    if (users == null) {
+      Utility.my_toast_short("Profile not found.");
+      Navigator.pop(context);
+      return;
+    }
+
+    UserModel u = await dbHelper.get_logged_user();
+    if (u != null) {
+      if (u.user_id == users[0].user_id) {
+        this.isMyProfile = true;
+      }
     }
 
     setState(() {

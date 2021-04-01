@@ -46,12 +46,12 @@ class UserModel {
   String cv = "";
   String about = "";
   String fcmToken;
-  String profile_photo;
+  String profile_photo = "https://images.unsplash.com/photo-1617206710131-4e2f87491eb1?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80";
   String profile_photo_id;
-  String profile_photo_large;
+  String profile_photo_large = "https://images.unsplash.com/photo-1617206710131-4e2f87491eb1?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80";
   String profile_photo_large_id;
-  String profile_photo_large_thumb;
-  String profile_photo_thumb;
+  String profile_photo_large_thumb = "https://images.unsplash.com/photo-1617206710131-4e2f87491eb1?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80";
+  String profile_photo_thumb = "https://images.unsplash.com/photo-1617206710131-4e2f87491eb1?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80";
 
   static String DROP_USER_DATABSE() {
     return 'DROP TABLE  ' + Constants.USERS_TABLE + " IF EXISTS";

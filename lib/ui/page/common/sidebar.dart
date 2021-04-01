@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:iuiuaa/db/database.dart';
 import 'package:iuiuaa/helper/constant.dart';
+import 'package:iuiuaa/model/UserModel.dart';
 import 'package:iuiuaa/state/authState.dart';
 import 'package:iuiuaa/ui/theme/theme.dart';
 import 'package:iuiuaa/widgets/customWidgets.dart';
@@ -14,9 +16,29 @@ class SidebarMenu extends StatefulWidget {
 }
 
 class _SidebarMenuState extends State<SidebarMenu> {
+  DatabaseHelper dbHelper = DatabaseHelper.instance;
+  List<UserModel> _users = [];
+  UserModel loggined_user = UserModel();
+  bool isBusy = true;
+
+  Future<void> my_init() async {
+    isBusy = true;
+    setState(() {});
+
+    loggined_user = await dbHelper.get_logged_user();
+
+    isBusy = false;
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    my_init();
+    super.initState();
+  }
+
   Widget _menuHeader() {
-    final state = Provider.of<AuthState>(context);
-    if (state.userModel == null) {
+    if (loggined_user == null) {
       return customInkWell(
         context: context,
         onPressed: () {
@@ -47,7 +69,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
                 borderRadius: BorderRadius.circular(28),
                 image: DecorationImage(
                   image: customAdvanceNetworkImage(
-                    state.userModel.profile_photo ?? Constants.dummyProfilePic,
+                    loggined_user.profile_photo ?? Constants.dummyProfilePic,
                   ),
                   fit: BoxFit.cover,
                 ),
@@ -55,15 +77,21 @@ class _SidebarMenuState extends State<SidebarMenu> {
             ),
             ListTile(
               onTap: () {
-                _navigateTo("ProfilePage");
+                _navigateTo(Constants.ProfilePage, loggined_user.user_id);
               },
               title: Row(
                 children: <Widget>[
-                  Text("anjane`"),
+                  loggined_user == null
+                      ? Text("")
+                      : Text(
+                          loggined_user.first_name +
+                              " " +
+                              loggined_user.last_name,
+                        ),
                   SizedBox(
                     width: 3,
                   ),
-                  state.userModel.approved ?? false
+                  loggined_user.approved.contains("1") ?? false
                       ? customIcon(context,
                           icon: AppIcon.blueTick,
                           istwitterIcon: true,
@@ -76,7 +104,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
                 ],
               ),
               subtitle: customText(
-                state.userModel.user_id,
+                loggined_user.email,
                 style: TextStyles.onPrimarySubTitleText
                     .copyWith(color: Colors.black54, fontSize: 15),
               ),
@@ -92,11 +120,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
                   SizedBox(
                     width: 17,
                   ),
-                  _tappbleText(context, '[]',
-                      ' Followers', 'FollowerListPage'),
                   SizedBox(width: 10),
-                  _tappbleText(context, '[]',
-                      ' Following', 'FollowingListPage'),
                 ],
               ),
             ),
@@ -113,7 +137,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
         var authstate = Provider.of<AuthState>(context, listen: false);
         // authstate.profileFollowingList = [];
         authstate.getProfileUser();
-        _navigateTo(navigateTo);
+        _navigateTo(navigateTo, "");
       },
       child: Row(
         children: <Widget>[
@@ -200,9 +224,9 @@ class _SidebarMenuState extends State<SidebarMenu> {
     state.logoutCallback();
   }
 
-  void _navigateTo(String path) {
+  void _navigateTo(String path, String arg) {
     //Navigator.pop(context);
-    Navigator.of(context).pushNamed('$path');
+    Navigator.of(context).pushNamed('$path', arguments: arg);
   }
 
   @override
@@ -222,16 +246,16 @@ class _SidebarMenuState extends State<SidebarMenu> {
                   Divider(),
                   _menuListRowButton('Profile',
                       icon: AppIcon.profile, isEnable: true, onPressed: () {
-                    _navigateTo(Constants.ProfilePage);
+                    _navigateTo(Constants.ProfilePage, loggined_user.user_id);
                   }),
                   _menuListRowButton('Lists', icon: AppIcon.lists),
                   _menuListRowButton('Bookmark', icon: AppIcon.bookmark),
                   _menuListRowButton('Moments', icon: AppIcon.moments),
-                  _menuListRowButton('Fwitter ads', icon: AppIcon.twitterAds),
+                  _menuListRowButton('Market Place', icon: AppIcon.twitterAds),
                   Divider(),
                   _menuListRowButton('Settings and privacy', isEnable: true,
                       onPressed: () {
-                    _navigateTo('SettingsAndPrivacyPage');
+                    _navigateTo('/SettingsAndPrivacyPage', "");
                   }),
                   _menuListRowButton('Help Center'),
                   Divider(),
