@@ -34,8 +34,9 @@ class _HomePageState extends State<HomePage> {
     }
     logged_in_user = await dbHelper.get_logged_user();
     if (logged_in_user == null) {
+      print("Nog logged 1");
       Utility.my_toast_short("You are not logged in.");
-      Navigator.pushNamed(context, Constants.PAGE_HOME)
+      Navigator.pushNamed(context, Constants.SplashPage)
           .then((value) => {Navigator.pop(context)});
       return;
     }

@@ -50,10 +50,10 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         routes: {
           // When navigating to the "/" route, build the FirstScreen widget.
-          '/': (context) => SplashPage(),
+          '/': (context) => HomePage(),
           Constants.PAGE_SIGNUP: (context) => Signup(),
           // When navigating to the "/second" route, build the SecondScreen widget.
-          Constants.PAGE_HOME: (context) => HomePage(),
+          Constants.PAGE_HOME: (context) => HomePage(), 
           Constants.SplashPage: (context) => SplashPage(),
           Constants.ProfilePage: (context) => ProfilePage(),
           Constants.EditProfile: (context) => EditProfilePage(),

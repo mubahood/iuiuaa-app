@@ -127,6 +127,7 @@ class _ComposeTweetReplyPageState extends State<ComposeTweetPage> {
 
     Uint8List s = await response.stream.toBytes();
     var rawJson = Utf8Decoder().convert(s);
+    print("Anjane : " + rawJson);
     if (rawJson == null) {
       Utility.my_toast_short("Failed to post. Please try again.");
       hide_loader();
@@ -371,9 +372,8 @@ class _ComposeTweet
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              customImage(context,
-                  "https://images.unsplash.com/photo-1503300961747-204cbbdaeb51?ixlib=rb-1.2.1&ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&auto=format&fit=crop&w=1868&q=80",
-                  height: 40),
+              Image.asset('assets/images/bulb.png', height: 40),
+
               SizedBox(
                 width: 10,
               ),
@@ -425,7 +425,7 @@ class _TextField extends StatelessWidget {
           decoration: InputDecoration(
               border: InputBorder.none,
               hintText: isTweet
-                  ? 'What\'s happening?'
+                  ? 'Share something meaningful'
                   : isRetweet
                       ? 'Add a comment'
                       : 'Tweet your reply',

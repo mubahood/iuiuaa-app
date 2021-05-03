@@ -43,6 +43,7 @@ class _ChatListPageState extends State<ChatListPage> {
     logged_in_user = await dbHelper.get_logged_user();
     if (logged_in_user == null) {
       Utility.my_toast("You are not logged in.");
+      print("Nog logged 2");
       return;
     }
 

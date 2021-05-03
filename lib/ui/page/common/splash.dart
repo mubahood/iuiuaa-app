@@ -136,7 +136,7 @@ class _SplashPage extends State<SplashPage> {
                       InkWell(
                         onTap: () {
                           Navigator.pushNamed(context, Constants.PAGE_SIGNUP).then((value) => {
-                            Navigator.pop(context)
+                            //Navigator.pop(context)
                           });
                         },
                         child: Padding(
